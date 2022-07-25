@@ -89,7 +89,7 @@ func main() {
 		}
 	})
 
-	if err := http.ListenAndServe(":3000", r); err != nil {
+	if err := http.ListenAndServe(":2003", r); err != nil {
 		logger.Fatal("http server errored", zap.Error(err))
 	}
 }
