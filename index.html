@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <style>
+        body {
+            margin: 0;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+    </style>
+    <title>scorp's simple mind mapper</title>
+</head>
+<body class="m-0">
+    <div id="map"></div>
+    <script src="https://cdn.jsdelivr.net/npm/mind-elixir/dist/MindElixir.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-elixir/dist/painter.js"></script>
+    <script>
+        function uuidv4() {
+            return ([1e7]+-1e3+-4e3+-8e3+-1e11).replace(/[018]/g, c =>
+                (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16)
+            );
+        }
+
+        const params = new URLSearchParams(window.location.search);
+
+        let id = params.get("id") || uuidv4();
+        let unlockKey = params.get("unlock_key") || "";
+
+        const mind = new MindElixir({
+            el: "#map",
+            direction: MindElixir.RIGHT,
+            draggable: true,
+            contextMenu: true,
+            toolBar: true,
+            nodeMenu: true,
+            keypress: true,
+            contextMenuOption: {
+                focus: true,
+                link: true,
+                extend: [
+                    {
+                        name: "Save",
+                        onclick: () => {
+                            fetch("/api/" + id, {
+                                method: "POST",
+                                headers: [
+                                    ["Unlock-Key", unlockKey]
+                                ],
+                                body: JSON.stringify({
+                                    "data": mind.getAllDataString()
+                                })
+                            }).then((r) => {
+                                if (r.status === 200) {
+                                    params.set("id", id);
+                                    if (unlockKey !== "") {
+                                        params.set("unlock_key", unlockKey);
+                                    }
+
+                                    history.pushState(null, "", window.location.pathname + "?" + params.toString());
+                                } else {
+                                    alert("Failed to save data, see console for more details.");
+                                    console.error(r);
+                                }
+                            });
+                        }
+                    }
+                ]
+            }
+        });
+
+        if (params.has("id")) {
+            fetch("/api/" + id, {
+                method: "GET",
+                headers: [
+                    ["Unlock-Key", unlockKey]
+                ]
+            }).then((r) => {
+                return r.json().then((data) => {
+                    if (r.status === 200) {
+                        mind.init(JSON.parse(data.data));
+                    } else {
+                        mind.init(MindElixir.new("New topic"));
+                        alert("Failed to load map, see console for details.");
+                        console.error(data);
+                    }
+                });
+            });
+        } else {
+            mind.init(MindElixir.new("New topic"));
+        }
+    </script>
+</body>
+</html>
