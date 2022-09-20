@@ -34,13 +34,19 @@
         let unlockKey = params.get("unlock_key") || "";
 
         const mind = new MindElixir({
-            el: "#map",
+            el: '#map',
             direction: MindElixir.RIGHT,
-            draggable: true,
-            contextMenu: true,
-            toolBar: true,
-            nodeMenu: true,
-            keypress: true,
+            // the data return from `.getAllData()`
+            draggable: true, // default true
+            contextMenu: true, // default true
+            toolBar: true, // default true
+            nodeMenu: true, // default true
+            keypress: true, // default true
+            locale: 'en', // [zh_CN,zh_TW,en,ja,pt] waiting for PRs
+            overflowHidden: false, // default false
+            primaryLinkStyle: 2, // [1,2] default 1
+            primaryNodeVerticalGap: 15, // default 25
+            primaryNodeHorizontalGap: 15, // default 65
             contextMenuOption: {
                 focus: true,
                 link: true,
@@ -93,7 +99,7 @@
                 });
             });
         } else {
-            mind.init(MindElixir.new("New topic"));
+            mind.init(MindElixir.new("Your First Topic"));
         }
     </script>
 </body>
